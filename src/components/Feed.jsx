@@ -7,6 +7,7 @@ function Feed() {
   const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const { session } = useAuth();
 
   useEffect(() => {
@@ -46,15 +47,13 @@ function Feed() {
       }
     } catch (error) {
       console.error('Post creation error:', error);
-      setError('An unexpected error occurred');
+      setError('Failed to create post');
     }
   };
 
   // Function to create proxy URL for images
   const getProxyImageUrl = (originalUrl) => {
-    // Remove any query parameters from the URL
     const baseUrl = originalUrl.split('?')[0];
-    // Return URL through a CORS proxy
     return `https://images.weserv.nl/?url=${encodeURIComponent(baseUrl)}&default=placeholder`;
   };
 
@@ -83,6 +82,17 @@ function Feed() {
     );
   };
 
+  // Filter posts based on search term
+  const filteredPosts = posts.filter(post => {
+    if (!searchTerm) return true;
+    
+    const content = post.post.record.text.toLowerCase();
+    const author = post.post.author.handle.toLowerCase();
+    const search = searchTerm.toLowerCase();
+    
+    return content.includes(search) || author.includes(search);
+  });
+
   if (loading) {
     return (
       <div className="container" style={{ textAlign: 'center', padding: '2rem' }}>
@@ -93,6 +103,16 @@ function Feed() {
 
   return (
     <div className="container">
+      <div className="search-container">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search posts by content or author..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       <form onSubmit={handleCreatePost} style={{ marginBottom: '2rem' }}>
         <div className="form-group">
           <textarea
@@ -113,19 +133,27 @@ function Feed() {
       )}
 
       <div className="feed">
-        {posts.map((post) => (
+        {filteredPosts.map((post) => (
           <div key={post.post.uri} className="post">
             <div className="post-header">
               <div className="post-author-info">
                 <span className="post-author">@{post.post.author.handle}</span>
                 <span className="post-time">
-                  {new Date(post.post.record.createdAt).toLocaleString()}
+                  {new Date(post.post.indexedAt).toLocaleString()}
                 </span>
               </div>
             </div>
             {renderPostContent(post)}
           </div>
         ))}
+
+        {filteredPosts.length === 0 && !loading && (
+          <div className="no-results">
+            {searchTerm 
+              ? 'No posts found matching your search' 
+              : 'No posts available'}
+          </div>
+        )}
       </div>
     </div>
   );

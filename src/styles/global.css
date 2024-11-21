@@ -414,3 +414,33 @@ body {
     --gray: #a0a0a0;
   }
 }
+
+
+.search-container {
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gray);
+  background: var(--surface);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+}

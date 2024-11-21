@@ -68,12 +68,40 @@ export const getTimeline = async () => {
       throw new Error('Not authenticated');
     }
 
-    const response = await agent.getTimeline();
-    console.log('Timeline response:', response);
+    const response = await agent.getTimeline({
+      algorithm: 'reverse-chronological',
+      limit: 50,
+    });
+
+    console.log('Raw timeline response:', response);
+
+    if (!response || !response.data || !response.data.feed) {
+      throw new Error('Invalid response format');
+    }
+
+    // Transform the feed items to match our expected format
+    const feed = response.data.feed.map(item => ({
+      post: {
+        uri: item.post.uri,
+        cid: item.post.cid,
+        author: {
+          did: item.post.author.did,
+          handle: item.post.author.handle,
+          displayName: item.post.author.displayName,
+          avatar: item.post.author.avatar
+        },
+        record: {
+          text: item.post.record.text,
+          createdAt: item.post.record.createdAt
+        },
+        embed: item.post.embed,
+        indexedAt: item.post.indexedAt
+      }
+    }));
 
     return {
       success: true,
-      data: response.data.feed
+      data: feed
     };
   } catch (error) {
     console.error('Timeline error:', error);
